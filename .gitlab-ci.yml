@@ -1,0 +1,52 @@
+stages:
+  - package
+  - upload
+  - release
+  - deploy
+
+variables:
+  PACKAGE_IP: "10.10.250.111"
+  PACKAGE_PORT: "56000"
+  DEPLOY_HOST: "VM-ubuntu-test2204-06"
+  MAAS_HOST: "10.10.249.14"
+  JUMP_HOST: ""
+  MAAS_APIKEY: "GyMY8KLQra9xCsyKMv:pnB2SZWptvhbtPka3S:dPW7UQCS92vrpzSaVa3SNRDgrkAuVghe"
+
+package:
+  stage: package
+  tags:
+    - custom-runner-1
+  variables:
+    SSH_USER: "ubuntu"
+    SSH_PASS: "x4zAPiU9E8"
+  script:
+    - 'JUMP_OPT=""; if [ -n "${JUMP_HOST}" ]; then JUMP_HOSTS="root@${JUMP_HOST},root@${MAAS_HOST}"; JUMP_OPT="-J ${JUMP_HOSTS}"; fi'
+    - sshpass -p "${SSH_PASS}" scp -o StrictHostKeyChecking=no -P ${PACKAGE_PORT} ${JUMP_OPT} 1_make_tar/package-ubuntu.sh ${SSH_USER}@${PACKAGE_IP}:~/
+    - sshpass -p "${SSH_PASS}" ssh -o StrictHostKeyChecking=no -p${PACKAGE_PORT} ${JUMP_OPT} ${SSH_USER}@${PACKAGE_IP} "echo ${SSH_PASS} | sudo -S bash ~/package-ubuntu.sh"
+    - IMG_FILE=$(sshpass -p "${SSH_PASS}" ssh -o StrictHostKeyChecking=no -p${PACKAGE_PORT} ${JUMP_OPT} ${SSH_USER}@${PACKAGE_IP} 'cat /tmp/.last-package-path')
+    - sshpass -p "${SSH_PASS}" scp -o StrictHostKeyChecking=no -P ${PACKAGE_PORT} ${JUMP_OPT} ${SSH_USER}@${PACKAGE_IP}:"${IMG_FILE}" /tmp/
+    - echo "${IMG_FILE}" > /tmp/.last-package-path
+      #when: manual
+upload:
+  stage: upload
+  tags:
+    - custom-runner-1
+  script:
+    - bash 2_upload/upload-maas.sh
+      #when: manual
+
+release:
+  stage: release
+  tags:
+    - custom-runner-1
+  script:
+    - bash 3_release/release-maas.sh "${DEPLOY_HOST}"
+      #when: manual
+
+deploy:
+  stage: deploy
+  tags:
+    - custom-runner-1
+  script:
+    - bash 4_deploy/deploy-maas.sh "${DEPLOY_HOST}"
+      #when: manual 

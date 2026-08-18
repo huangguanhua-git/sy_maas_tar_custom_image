@@ -1,0 +1,19 @@
+# 排除目录
+#iso/
+#iso-mount/
+#iso-ubuntu/
+#/mnt/custom-os/X86_64/iso/
+#/mnt/custom-os/X86_64/iso-mount/
+#/mnt/custom-os/X86_64/iso-ubuntu/
+
+update-gitci.sh
+init.sh
+make_maas_tar.tar.gz
+# 其他可能需要排除的文件
+make.log
+make.pid
+*.log
+examples-ci
+# ISO 文件
+*.iso
+*.squashfs.gpg
