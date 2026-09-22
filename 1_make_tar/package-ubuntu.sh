@@ -163,7 +163,7 @@ echo " ============================== GPU 信息采集 =========================
 na() { [ -z "$1" ] && echo "NA" || echo "$1"; }
 OS=$(lsb_release -ds 2>/dev/null || grep PRETTY_NAME /etc/os-release | cut -d= -f2 | tr -d '"' || :)
 KERN=$(uname -r)
-MOD=$(lsmod 2>/dev/null | grep -E 'nvidia|nouveau' | awk '{print $1}' | sort -u | paste -sd, || :)
+MOD=$(lsmod 2>/dev/null | grep -E 'nvidia|nouveau|peer' | awk '{print $1}' | sort -u | paste -sd, || :)
 DRV=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null | head -1 || :)
 FM=$(nv-fabricmanager -v|grep version|awk '{print$NF}' 2>/dev/null | grep -oP '[\d.]+' || :)
 CUDA=$(/usr/local/cuda/bin/nvcc -V |grep release|awk '{print$5}'|cut -d, -f1 || :)
